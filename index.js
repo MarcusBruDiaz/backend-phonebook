@@ -8,6 +8,7 @@ app.use(express.static('build'))// Esto statis que recibi como parametro buil lo
 
 
 
+
 //Datos:
 let phones=[
     {
@@ -18,13 +19,43 @@ let phones=[
 ]
 
 
+const generateID = ()=>{
+    const maxId = phones.length > 0 ? Math.max(...phones.map((n)=>n.id)) : 0 // aqui obtendo el  numero maximo del id de las notas actuamente.
+    
+    return maxId+1; // y le asiganos a la nodta un id: el cual es maxId el ultimo id mas alto mas 1
+  
+}
+
+
+
+
 
 
 //Rutas:
-
-
 app.get('/api/phones', (request,response)=>{
     response.json(phones)
+})
+
+
+app.post('/api/phones',(request,response)=>{
+    const body = request.body;
+    
+    if(!body.name){ 
+        return response.status(404).json({
+            error: 'name missing'
+        })
+    }
+
+    const phone ={
+        name: body.name,
+        number: body.number,
+        id: generateID()
+    }
+
+    phones = phones.concat(phone);
+
+    response.json(phone);
+
 })
 
 
