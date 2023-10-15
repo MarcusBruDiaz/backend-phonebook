@@ -4,10 +4,20 @@ const cors = require('cors'); // importo el modilo de cors para poder hacer cons
 const app = express();  //ejecuto el modulo y guardo expres en la variable app
 const PhoneBook = require('./models/nodemongo')
 
+const errorHandler  = (error,request,response,next)=>{
+        console.log(error.message)
+
+        if(error.name =='CastError'){
+            return response.status(404).send({error:'malformated id'})
+        }
+
+        next(error)
+}
+
 app.use(cors()); // uso el modulo cors en la aplicacion app
 app.use(express.json()); // usp el json para recibior las solicitude echas por el cliente donde mandasn datos y esto los concierte a json.
 app.use(express.static('build'))// Esto statis que recibi como parametro buil lo que va a hacer es que ciuando encuentre una carptea build en el directoriod el backen lo va a ajecutar.
-
+app.use(errorHandler)
 
 
 
@@ -16,6 +26,8 @@ const generateID = ()=>{
     const maxId = phones.length > 0 ? Math.max(...phones.map((n)=>n.id)) : 0 // aqui obtendo el  numero maximo del id de las notas actuamente.
     return maxId+1; // y le asiganos a la nodta un id: el cual es maxId el ultimo id mas alto mas 1
 }
+
+
 
 
 
@@ -50,7 +62,7 @@ app.post('/api/phones',(request,response)=>{
 })
 
 
-app.delete('/api/phones/:id',(request,response)=>{
+app.delete('/api/phones/:id',(request,response,next)=>{
     const id = request.params.id
 
     PhoneBook.findByIdAndRemove(id)
@@ -58,9 +70,19 @@ app.delete('/api/phones/:id',(request,response)=>{
             response.status(204).end()
         })
         .catch(error=>{
-            console.log(error)
+            next(error)
         })
 })
+
+
+
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
 
 
 
